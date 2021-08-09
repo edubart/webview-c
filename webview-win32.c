@@ -22,9 +22,11 @@
  * SOFTWARE.
  */
 
+#ifdef _MSC_VER
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "ole32.lib")
 #pragma comment(lib, "oleaut32.lib")
+#endif
 
 #define CINTERFACE
 #include <windows.h>
@@ -713,10 +715,10 @@ static int DisplayHTMLPage(struct webview *w) {
 
     char *url = (char *)calloc(1, strlen(webview_url) + 1);
     char *q = url;
-    for (const char *p = webview_url + strlen(WEBVIEW_DATA_URL_PREFIX); *q = *p;
+    for (const char *p = webview_url + strlen(WEBVIEW_DATA_URL_PREFIX); (*q = *p);
          p++, q++) {
       if (*q == '%' && *(p + 1) && *(p + 2)) {
-        sscanf(p + 1, "%02x", q);
+        sscanf(p + 1, "%02x", (unsigned int*)q);
         p = p + 2;
       }
     }
@@ -785,10 +787,6 @@ static int fileExists(LPCSTR lpFileName) {
 static int isDirectory(LPCSTR lpFileName) {
   DWORD attributes = GetFileAttributes(lpFileName);
   return (attributes != INVALID_FILE_ATTRIBUTES) && (attributes & FILE_ATTRIBUTE_DIRECTORY);
-}
-static int isFile(LPCSTR lpFileName) {
-  DWORD attributes = GetFileAttributes(lpFileName);
-  return (attributes != INVALID_FILE_ATTRIBUTES) && !(attributes & FILE_ATTRIBUTE_DIRECTORY);
 }
 
 static void findWebView2BrowserExecutableFolder() {
@@ -928,7 +926,7 @@ static HRESULT CreateWebView2Controller_Invoke(ICoreWebView2CreateCoreWebView2Co
   ICoreWebView2 *webview;
   if (FAILED(result) || (webViewController == NULL)) {
     char buffer[256];
-    sprintf(buffer, "CreateWebView2Controller_Invoke(%p, %08X, %p) => %08X (fail)", This, result, webViewController, E_FAIL);
+    sprintf(buffer, "CreateWebView2Controller_Invoke(%p, %08X, %p) => %08X (fail)", This, (int)result, webViewController, (int)E_FAIL);
     webview_print_log(buffer);
     return E_FAIL;
   }
@@ -971,14 +969,14 @@ static HRESULT CreateWebView2Environment_Invoke(ICoreWebView2CreateCoreWebView2E
   webview_print_log("CreateWebView2Environment_Invoke()");
   if (FAILED(result) || (webViewEnvironment == NULL)) {
     char buffer[256];
-    sprintf(buffer, "CreateWebView2Environment_Invoke(%p, %08X, %p) => %08X (fail)", This, result, webViewEnvironment, E_FAIL);
+    sprintf(buffer, "CreateWebView2Environment_Invoke(%p, %08X, %p) => %08X (fail)", This, (int)result, webViewEnvironment, (int)E_FAIL);
     webview_print_log(buffer);
     return E_FAIL;
   }
   webViewEnvironment->lpVtbl->AddRef(webViewEnvironment);
   webview2 *pwv2 = WEBVIEW2_PTR_FROM(This, env_created_handler);
   webview_print_log("CreateWebView2Environment_Invoke() CreateCoreWebView2Controller");
-  HRESULT hResult = webViewEnvironment->lpVtbl->CreateCoreWebView2Controller(webViewEnvironment, pwv2->hwnd, &pwv2->controller_created_handler);
+  webViewEnvironment->lpVtbl->CreateCoreWebView2Controller(webViewEnvironment, pwv2->hwnd, &pwv2->controller_created_handler);
   webview_print_log("CreateWebView2Environment_Invoke() => ok");
   return S_OK;
 }
@@ -1033,7 +1031,7 @@ WEBVIEW2_WIN32_API webview2 * CreateWebView2(HWND hwnd, const char *url, int deb
       HRESULT hr = CreateCoreWebView2EnvironmentFn(NULL, userDataFolder, NULL, &pwv2->env_created_handler);
       if (FAILED(hr)) {
         char buffer[256];
-        sprintf(buffer, CREATE_COREWEBVIEW2_ENVIRONMENTWITHOPTIONS_FN_NAME "(%p, %p, %p) => %08X (fail)", NULL, userDataFolder, NULL, hr);
+        sprintf(buffer, CREATE_COREWEBVIEW2_ENVIRONMENTWITHOPTIONS_FN_NAME "(%p, %p, %p) => %08X (fail)", NULL, userDataFolder, NULL, (int)hr);
         webview_print_log(buffer);
         GlobalFree(pwv2);
         pwv2 = NULL;

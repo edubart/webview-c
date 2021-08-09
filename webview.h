@@ -35,62 +35,9 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+#include <stddef.h>
 
-#if defined(WEBVIEW_GTK)
-#include <JavaScriptCore/JavaScript.h>
-#include <gtk/gtk.h>
-#include <webkit2/webkit2.h>
-
-struct webview_priv {
-  GtkWidget *window;
-  GtkWidget *scroller;
-  GtkWidget *webview;
-  GtkWidget *inspector_window;
-  GAsyncQueue *queue;
-  int ready;
-  int js_busy;
-  int should_exit;
-};
-#elif defined(WEBVIEW_WINAPI)
-#define CINTERFACE
-#include <windows.h>
-
-#include <commctrl.h>
-#include <exdisp.h>
-#include <mshtmhst.h>
-#include <mshtml.h>
-#include <shobjidl.h>
-
-#include <stdio.h>
-
-typedef struct webview2_struct webview2;
-
-struct webview_priv {
-  HWND hwnd;
-  IOleObject **browser;
-  BOOL is_fullscreen;
-  DWORD saved_style;
-  DWORD saved_ex_style;
-  RECT saved_rect;
-  webview2 *webview2;
-};
-#elif defined(WEBVIEW_COCOA)
-#include <objc/objc-runtime.h>
-#include <CoreGraphics/CoreGraphics.h>
-#include <limits.h>
-
-struct webview_priv {
-  id pool;
-  id window;
-  id webview;
-  id windowDelegate;
-  int should_exit;
-};
-#else
-#error "Define one of: WEBVIEW_GTK, WEBVIEW_COCOA or WEBVIEW_WINAPI"
-#endif
+struct webview_priv;
 
 typedef struct webview webview;
 
@@ -105,7 +52,7 @@ struct webview {
   int resizable;
   int debug;
   webview_external_invoke_cb_t external_invoke_cb;
-  struct webview_priv priv;
+  struct webview_priv *priv;
   void *userdata;
 };
 
@@ -159,6 +106,11 @@ WEBVIEW_API void webview_print_log(const char *s);
 
 #ifdef WEBVIEW_IMPLEMENTATION
 #undef WEBVIEW_IMPLEMENTATION
+
+#include <stdlib.h>
+#include <string.h>
+#include <stdarg.h>
+#include <stdio.h>
 
 #define DEFAULT_URL                                                            \
   "data:text/"                                                                 \
@@ -260,6 +212,8 @@ WEBVIEW_API int webview_inject_css(struct webview *w, const char *css) {
 
 #include "webview-cocoa.c"
 
+#else
+#error "Define one of: WEBVIEW_GTK, WEBVIEW_COCOA or WEBVIEW_WINAPI"
 #endif
 
 #endif /* WEBVIEW_IMPLEMENTATION */

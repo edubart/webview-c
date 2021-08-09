@@ -200,6 +200,16 @@ WEBVIEW_API int webview_inject_css(struct webview *w, const char *css) {
   return r;
 }
 
+#if !defined(WEBVIEW_WINAPI) && !defined(WEBVIEW_COCOA) && !defined(WEBVIEW_GTK)
+  #if defined(_WIN32)
+    #define WEBVIEW_WINAPI
+  #elif defined(__APPLE__)
+    #define WEBVIEW_COCOA
+  #else
+    #define WEBVIEW_GTK
+  #endif
+#endif
+
 #if defined(WEBVIEW_GTK)
 
 #include "webview-gtk.c"

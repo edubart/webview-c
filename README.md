@@ -1,5 +1,17 @@
 ## Overview
 
+This is a fork of [webview-c](https://github.com/javalikescript/webview-c) library which is a fork
+of [webview](https://github.com/zserge/webview/tree/9c1b0a888aa40039d501c1ea9f60b22a076a25ea) library.
+
+Differences:
+
+* Fix warnings
+* Auto detect platform
+* Easier to bind in other languages
+* Bundle MS WebView2 API
+
+## Overview
+
 A tiny cross-platform webview C library to build modern cross-platform GUIs.
 
 It supports two-way JavaScript bindings (to call JavaScript from C and to call C from JavaScript).
